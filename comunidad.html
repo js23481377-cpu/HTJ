@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script src="guard.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LIFE TRADING - Comunidad</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <div class="app-layout">
+    
+    <!-- BARRA LATERAL -->
+    <aside class="sidebar">
+      <div class="sidebar-top">
+        <div class="brand">
+          <div class="brand-icon"><i data-lucide="trending-up"></i></div>
+          <div class="brand-text">
+            <span class="brand-name">LIFE TRADING</span>
+            <span class="brand-tag">THE JOURNAL</span>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <span class="nav-section-title">TU ESPACIO</span>
+          <a href="index.html" class="nav-item">
+            <i data-lucide="layout-dashboard"></i>
+            <span>Vista general</span>
+          </a>
+          <a href="backtesting.html" class="nav-item">
+            <i data-lucide="flask-conical"></i>
+            <span>Backtesting</span>
+          </a>
+          <a href="noticias.html" class="nav-item">
+            <i data-lucide="globe"></i>
+            <span>Noticias / Macro</span>
+          </a>
+          <a href="comunidad.html" class="nav-item active">
+            <i data-lucide="bar-chart-2"></i>
+            <span>Comunidad</span>
+          </a>
+        </nav>
+      </div>
+
+      <div class="sidebar-bottom">
+        <div class="user-profile">
+          <div class="avatar">J</div>
+          <div class="user-info">
+            <span class="user-name">JUANO</span>
+            <span class="user-role">Mi journal</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="main-content">
+      
+      <header class="content-header">
+        <div class="header-titles">
+          <span class="breadcrumb">COMUNIDAD / RANKING</span>
+          <h1>Leaderboard de Traders.</h1>
+          <p class="greeting">Clasificación privada basada en % de ganancias del mes.</p>
+        </div>
+        <button id="openAccessModalBtn" class="btn-register">
+          <i data-lucide="key"></i>
+          <span>Activar Mi Perfil</span>
+        </button>
+      </header>
+
+      <!-- TABLA DE RANKING -->
+      <div class="card" style="margin-top: 20px;">
+        <div class="card-header-row">
+          <div>
+            <h3>Ranking Global del Mes</h3>
+            <p class="card-subtext">Traders verificados en la comunidad privada.</p>
+          </div>
+          <i data-lucide="trophy" style="color: #eab308;"></i>
+        </div>
+
+        <div style="margin-top: 16px; overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+            <thead>
+              <tr style="border-bottom: 1px solid var(--card-border); color: var(--text-muted); height: 40px;">
+                <th style="padding: 8px;">Puesto</th>
+                <th style="padding: 8px;">Trader</th>
+                <th style="padding: 8px;">Win Rate (%)</th>
+                <th style="padding: 8px;">Trades Totales</th>
+                <th style="padding: 8px;">Profit Factor</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboardBody">
+              <!-- Se carga automáticamente desde Supabase -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- MODAL DE ACTIVACIÓN / CÓDIGO PRIVADO -->
+  <div id="accessModal" class="modal-overlay">
+    <div class="modal-content card" style="max-width: 400px;">
+      <div class="card-header-row">
+        <h3>Acceso al Ranking Privado</h3>
+        <button id="closeAccessModalBtn" class="btn-icon-setting"><i data-lucide="x"></i></button>
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-top: 12px; border-bottom: 1px solid var(--card-border); padding-bottom: 8px;">
+        <button type="button" id="tabRequest" class="pill-btn active">1. Solicitar Código</button>
+        <button type="button" id="tabActivate" class="pill-btn">2. Validar Código</button>
+      </div>
+
+      <!-- FORMS -->
+      <form id="formRequest" class="modal-form" style="margin-top: 14px;">
+        <div class="form-group">
+          <label>Tu Correo</label>
+          <input type="email" id="reqEmail" placeholder="ejemplo@correo.com" required>
+        </div>
+        <div class="form-group">
+          <label>Apodo de Trader (Username)</label>
+          <input type="text" id="reqUsername" placeholder="Ej. JUANO" required>
+        </div>
+        <button type="submit" class="btn-save-modal" style="width: 100%; margin-top: 10px;">Solicitar Acceso</button>
+      </form>
+
+      <form id="formValidate" class="modal-form" style="margin-top: 14px; display: none;">
+        <div class="form-group">
+          <label>Tu Correo</label>
+          <input type="email" id="valEmail" placeholder="ejemplo@correo.com" required>
+        </div>
+        <div class="form-group">
+          <label>Código Recibido</label>
+          <input type="text" id="valCode" placeholder="Ej. LT-4892" required>
+        </div>
+        <button type="submit" class="btn-save-modal" style="width: 100%; margin-top: 10px; background: var(--accent-green);">Validar e Ingresar</button>
+      </form>
+
+      <div id="statusMsg" style="margin-top: 12px; font-size: 12px; text-align: center;"></div>
+    </div>
+  </div>
+
+  <script src="comunidad.js"></script>
+</body>
+</html>
