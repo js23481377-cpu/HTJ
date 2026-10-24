@@ -3,7 +3,7 @@
 
 <head>
     <script src="guard.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -32,25 +32,25 @@
                     </div>
                 </div>
 
-                        <nav class="sidebar-nav">
-          <span class="nav-section-title">TU ESPACIO</span>
-          <a href="index.html" class="nav-item active">
-            <i data-lucide="layout-dashboard"></i>
-            <span>Vista general</span>
-          </a>
-          <a href="backtesting.html" class="nav-item">
-            <i data-lucide="flask-conical"></i>
-            <span>Backtesting</span>
-          </a>
-          <a href="noticias.html" class="nav-item">
-            <i data-lucide="globe"></i>
-            <span>Noticias / Macro</span>
-          </a>
-          <a href="#" class="nav-item">
-            <i data-lucide="bar-chart-2"></i>
-            <span>Comunidad</span>
-          </a>
-        </nav>
+                <nav class="sidebar-nav">
+                    <span class="nav-section-title">TU ESPACIO</span>
+                    <a href="index.html" class="nav-item active">
+                        <i data-lucide="layout-dashboard"></i>
+                        <span>Vista general</span>
+                    </a>
+                    <a href="backtesting.html" class="nav-item">
+                        <i data-lucide="flask-conical"></i>
+                        <span>Backtesting</span>
+                    </a>
+                    <a href="noticias.html" class="nav-item">
+                        <i data-lucide="globe"></i>
+                        <span>Noticias / Macro</span>
+                    </a>
+                    <a href="comunidad.html" class="nav-item">
+                        <i data-lucide="bar-chart-2"></i>
+                        <span>Comunidad</span>
+                    </a>
+                </nav>
 
             </div>
 
@@ -248,24 +248,23 @@
 
     </div>
 
-   <!-- ANÁLISIS PROFUNDO POR ESTRATEGIA (LAYOUT DE COLUMNAS) -->
-<div class="card" style="margin-top: 24px; margin-left: 300px;">
-  <div class="card-header-row">
-    <div>
-      <h3>Rendimiento por Estrategia</h3>
-      <p class="card-subtext">Métricas comparativas individuales (Máximo 5 estrategias activas)</p>
+    <!-- ANÁLISIS PROFUNDO POR ESTRATEGIA (LAYOUT DE COLUMNAS) -->
+    <div class="card" style="margin-top: 24px; margin-left: 300px;">
+        <div class="card-header-row">
+            <div>
+                <h3>Rendimiento por Estrategia</h3>
+                <p class="card-subtext">Métricas comparativas individuales (Máximo 5 estrategias activas)</p>
+            </div>
+            <i data-lucide="layers" style="color: var(--accent-green);"></i>
+        </div>
+        
+        <!-- Grid de columnas para las 5 estrategias -->
+        <div id="strategyColumnsContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-top: 16px;">
+            <!-- Se genera dinámicamente con JS -->
+        </div>
     </div>
-    <i data-lucide="layers" style="color: var(--accent-green);"></i>
-  </div>
-  
-  <!-- Grid de columnas para las 5 estrategias -->
-  <div id="strategyColumnsContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-top: 16px;">
-    <!-- Se genera dinámicamente con JS -->
-  </div>
-</div>
 
 
-    <!-- MODAL DE REGISTRO DE OPERACIÓN -->
     <!-- MODAL DE EDICIÓN DE PLAN DE TRADING -->
     <div id="planModal" class="modal-overlay">
         <div class="modal-content card">
@@ -294,6 +293,7 @@
         </div>
     </div>
 
+    <!-- MODAL DE REGISTRO DE OPERACIÓN -->
     <div id="tradeModal" class="modal-overlay">
         <div class="modal-content card">
             <div class="card-header-row">
@@ -341,7 +341,6 @@
                     </div>
                     <input type="hidden" id="tradeAsset" value="NAS100">
                 </div>
-            
 
                 <!-- DIRECCIÓN -->
                 <div class="form-group">
@@ -362,14 +361,13 @@
                         placeholder="Ej. 50 (Si es SL se guarda negativo solo)" required>
                 </div>
 
-<div class="form-group">
-  <label>Estrategia</label>
-  <div class="pill-group" id="strategyGroup">
-    <!-- Se llena dinámicamente con las píldoras y el botón + Nueva -->
-  </div>
-  <input type="hidden" id="tradeStrategy" value="">
-</div>
-
+                <div class="form-group">
+                    <label>Estrategia</label>
+                    <div class="pill-group" id="strategyGroup">
+                        <!-- Se llena dinámicamente con las píldoras y el botón + Nueva -->
+                    </div>
+                    <input type="hidden" id="tradeStrategy" value="">
+                </div>
 
                 <!-- NOTAS -->
                 <div class="form-group">
@@ -386,11 +384,6 @@
                     </label>
                     <input type="file" id="tradePhotoInput" accept="image/*" style="display: none;">
                 </div>
-
-                <div class="form-group">
-  
-
-
 
                 <!-- BOTONES FINALES -->
                 <div class="modal-footer-buttons">
@@ -424,11 +417,6 @@
             </form>
         </div>
     </div>
- 
-
-
-
-
 
     <script src="app.js"></script>
 </body>
