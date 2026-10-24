@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
     authStatusMsg.textContent = '';
   });
 
-  // 1. SOLICITAR CÓDIGO Y ENVIAR NOTIFICACIÓN POR CORREO AL DUENÕ
+  // 1. SOLICITAR CÓDIGO Y ENVIAR NOTIFICACIÓN POR CORREO AL DUEÑO
   formRequest.addEventListener('submit', async (e) => {
     e.preventDefault();
     authStatusMsg.style.color = '#a1a1aa';
@@ -64,8 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Enviar correo de notificación a tu email personal vía EmailJS
     try {
-      // REEMPLAZA 'TU_SERVICE_ID' Y 'TU_TEMPLATE_ID' CON TUS IDS DE EMAILJS
-      await emailjs.send("service_xyz123", "template_abc123", {
+      await emailjs.send("service_dtim3ij", "template_6d7x41c", {
         user_email: email,
         user_username: username,
         access_code: generatedCode
