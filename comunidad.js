@@ -1,127 +1,207 @@
-const SUPABASE_URL = 'TU_SUPABASE_URL_AQUI';
-const SUPABASE_KEY = 'TU_SUPABASE_ANON_KEY_AQUI';
-
-const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
 document.addEventListener('DOMContentLoaded', () => {
-  lucide.createIcons();
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
 
+  // --- 1. LÓGICA DEL MODAL DE ACCESO / CÓDIGO ---
   const accessModal = document.getElementById('accessModal');
   const openAccessModalBtn = document.getElementById('openAccessModalBtn');
   const closeAccessModalBtn = document.getElementById('closeAccessModalBtn');
-
   const tabRequest = document.getElementById('tabRequest');
   const tabActivate = document.getElementById('tabActivate');
   const formRequest = document.getElementById('formRequest');
   const formValidate = document.getElementById('formValidate');
   const statusMsg = document.getElementById('statusMsg');
 
-  if (openAccessModalBtn) openAccessModalBtn.addEventListener('click', () => accessModal.classList.add('active'));
-  if (closeAccessModalBtn) closeAccessModalBtn.addEventListener('click', () => accessModal.classList.remove('active'));
+  if (openAccessModalBtn) {
+    openAccessModalBtn.addEventListener('click', () => {
+      if (accessModal) accessModal.classList.add('active');
+    });
+  }
 
-  tabRequest.addEventListener('click', () => {
-    tabRequest.classList.add('active');
-    tabActivate.classList.remove('active');
-    formRequest.style.display = 'flex';
-    formValidate.style.display = 'none';
-    statusMsg.textContent = '';
-  });
+  if (closeAccessModalBtn) {
+    closeAccessModalBtn.addEventListener('click', () => {
+      if (accessModal) accessModal.classList.remove('active');
+    });
+  }
 
-  tabActivate.addEventListener('click', () => {
-    tabActivate.classList.add('active');
-    tabRequest.classList.remove('active');
-    formValidate.style.display = 'flex';
-    formRequest.style.display = 'none';
-    statusMsg.textContent = '';
-  });
+  if (accessModal) {
+    accessModal.addEventListener('click', (e) => {
+      if (e.target === accessModal) accessModal.classList.remove('active');
+    });
+  }
 
-  // 1. SOLICITAR CÓDIGO
-  formRequest.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    statusMsg.style.color = '#a1a1aa';
-    statusMsg.textContent = 'Procesando...';
+  // Pestañas del modal
+  if (tabRequest && tabActivate) {
+    tabRequest.addEventListener('click', () => {
+      tabRequest.classList.add('active');
+      tabActivate.classList.remove('active');
+      formRequest.style.display = 'block';
+      formValidate.style.display = 'none';
+    });
 
-    const email = document.getElementById('reqEmail').value.trim();
-    const username = document.getElementById('reqUsername').value.trim();
-    const generatedCode = 'LT-' + Math.floor(1000 + Math.random() * 9000);
+    tabActivate.addEventListener('click', () => {
+      tabActivate.classList.add('active');
+      tabRequest.classList.remove('active');
+      formValidate.style.display = 'block';
+      formRequest.style.display = 'none';
+    });
+  }
 
-    const { error } = await db.from('profiles').insert([
-      { email, username, access_code: generatedCode, is_approved: false }
-    ]);
+  // Manejo de Solicitud de Código
+  if (formRequest) {
+    formRequest.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('reqEmail').value.trim();
+      const username = document.getElementById('reqUsername').value.trim();
+      statusMsg.textContent = "Procesando solicitud...";
+      statusMsg.style.color = "var(--text-muted)";
 
-    if (error) {
-      statusMsg.style.color = '#ef4444';
-      statusMsg.textContent = 'Error: ' + error.message;
-    } else {
-      statusMsg.style.color = '#22c55e';
-      statusMsg.textContent = `¡Solicitud registrada! Tu código asignado es: ${generatedCode}`;
-    }
-  });
+      try {
+        const accessCode = 'LT-' + Math.floor(1000 + Math.random() * 9000);
 
-  // 2. VALIDAR CÓDIGO
-  formValidate.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    statusMsg.style.color = '#a1a1aa';
-    statusMsg.textContent = 'Validando...';
+        if (typeof db !== 'undefined') {
+          const { error } = await db.from('profiles').upsert([
+            { email, username, access_code: accessCode, is_approved: false }
+          ], { onConflict: 'email' });
 
-    const email = document.getElementById('valEmail').value.trim();
-    const code = document.getElementById('valCode').value.trim();
+          if (error) throw error;
+        }
 
-    const { data, error } = await db
-      .from('profiles')
-      .select('*')
-      .eq('email', email)
-      .eq('access_code', code)
-      .single();
+        statusMsg.textContent = "¡Solicitud guardada! Revisa tu correo de notificaciones.";
+        statusMsg.style.color = "var(--accent-green)";
+      } catch (err) {
+        console.error(err);
+        statusMsg.textContent = "Error al procesar la solicitud.";
+        statusMsg.style.color = "var(--accent-red)";
+      }
+    });
+  }
 
-    if (error || !data) {
-      statusMsg.style.color = '#ef4444';
-      statusMsg.textContent = 'Código o correo incorrectos.';
-    } else {
-      await db.from('profiles').update({ is_approved: true }).eq('id', data.id);
-      localStorage.setItem('life_trading_user', JSON.stringify(data));
-      
-      statusMsg.style.color = '#22c55e';
-      statusMsg.textContent = '¡Acceso activado con éxito!';
-      setTimeout(() => {
-        accessModal.classList.remove('active');
-        loadLeaderboard();
-      }, 1200);
-    }
-  });
+  // Manejo de Validación de Código
+  if (formValidate) {
+    formValidate.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('valEmail').value.trim();
+      const code = document.getElementById('valCode').value.trim();
+      statusMsg.textContent = "Validando código...";
 
-  // CARGAR LEADERBOARD REAL DESDE SUPABASE
+      try {
+        if (typeof db !== 'undefined') {
+          const { data, error } = await db
+            .from('profiles')
+            .select('*')
+            .eq('email', email)
+            .eq('access_code', code)
+            .single();
+
+          if (error || !data) {
+            statusMsg.textContent = "Código o correo inválido.";
+            statusMsg.style.color = "var(--accent-red)";
+            return;
+          }
+
+          await db.from('profiles').update({ is_approved: true }).eq('id', data.id);
+
+          localStorage.setItem('life_trading_user', JSON.stringify(data));
+          statusMsg.textContent = "¡Acceso concedido! Redirigiendo...";
+          statusMsg.style.color = "var(--accent-green)";
+
+          setTimeout(() => {
+            window.location.href = 'index.html';
+          }, 1200);
+        }
+      } catch (err) {
+        console.error(err);
+        statusMsg.textContent = "Error en la validación.";
+        statusMsg.style.color = "var(--accent-red)";
+      }
+    });
+  }
+
+  // --- 2. CARGAR RANKING GLOBAL DE LA COMUNIDAD ---
   async function loadLeaderboard() {
     const tbody = document.getElementById('leaderboardBody');
-    if (!tbody) return;
+    if (!tbody || typeof db === 'undefined') return;
 
-    const { data: profiles, error } = await db
-      .from('profiles')
-      .select('*')
-      .eq('is_approved', true)
-      .order('win_rate', { ascending: false });
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px; color: var(--text-muted);">Cargando ranking de traders...</td></tr>`;
 
-    if (error || !profiles || profiles.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" style="padding: 16px; text-align: center; color: var(--text-muted);">Sin traders verificados aún.</td></tr>`;
-      return;
+    try {
+      // Obtener perfiles aprobados
+      const { data: profiles, error: profError } = await db
+        .from('profiles')
+        .select('id, username')
+        .eq('is_approved', true);
+
+      // Obtener todos los trades
+      const { data: trades, error: tradeError } = await db
+        .from('trades')
+        .select('*');
+
+      if (profError || tradeError) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px; color: var(--accent-red);">Error al conectar con la base de datos.</td></tr>`;
+        return;
+      }
+
+      if (!profiles || profiles.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px; color: var(--text-muted);">No hay traders aprobados en el ranking todavía.</td></tr>`;
+        return;
+      }
+
+      // Calcular métricas por cada trader
+      const leaderboard = profiles.map(user => {
+        const userTrades = trades.filter(t => t.user_id === user.id && t.result !== 'NOOP');
+        const totalOps = userTrades.length;
+        
+        const winningTrades = userTrades.filter(t => t.result === 'TP' || t.pnl > 0);
+        const losingTrades = userTrades.filter(t => t.result === 'SL' || t.pnl < 0);
+
+        const winRate = totalOps > 0 ? Math.round((winningTrades.length / totalOps) * 100) : 0;
+        
+        const grossProfit = winningTrades.reduce((acc, t) => acc + (parseFloat(t.pnl) || 0), 0);
+        const grossLoss = Math.abs(losingTrades.reduce((acc, t) => acc + (parseFloat(t.pnl) || 0), 0));
+        
+        const profitFactor = grossLoss === 0 ? (grossProfit > 0 ? 'MAX' : '0.00') : (grossProfit / grossLoss).toFixed(2);
+        const totalPnl = userTrades.reduce((acc, t) => acc + (parseFloat(t.pnl) || 0), 0);
+
+        return {
+          username: user.username || 'Trader',
+          totalOps,
+          winRate,
+          profitFactor,
+          totalPnl
+        };
+      });
+
+      // Ordenar por ganancia total (PnL) de mayor a menor
+      leaderboard.sort((a, b) => b.totalPnl - a.totalPnl);
+
+      // Pintar filas en la tabla
+      tbody.innerHTML = '';
+      leaderboard.forEach((trader, index) => {
+        const tr = document.createElement('tr');
+        tr.style.borderBottom = '1px solid var(--card-border)';
+        tr.style.height = '45px';
+
+        let positionDisplay = `#${index + 1}`;
+        if (index === 0) positionDisplay = '🥇 1';
+        else if (index === 1) positionDisplay = '🥈 2';
+        else if (index === 2) positionDisplay = '🥉 3';
+
+        tr.innerHTML = `
+          <td style="padding: 8px; font-weight: 700;">${positionDisplay}</td>
+          <td style="padding: 8px; font-weight: 600; color: var(--text-main);">${trader.username}</td>
+          <td style="padding: 8px;">${trader.winRate}%</td>
+          <td style="padding: 8px;">${trader.totalOps}</td>
+          <td style="padding: 8px; font-weight: 700; color: var(--accent-green);">${trader.profitFactor}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+    } catch (err) {
+      console.error("Error al procesar el ranking:", err);
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px; color: var(--accent-red);">Error al procesar el ranking.</td></tr>`;
     }
-
-    tbody.innerHTML = '';
-    profiles.forEach((p, index) => {
-      const medals = ['🥇', '🥈', '🥉'];
-      const rankBadge = index < 3 ? `#${index + 1} ${medals[index]}` : `#${index + 1}`;
-      
-      const tr = document.createElement('tr');
-      tr.style.cssText = "border-bottom: 1px solid rgba(255,255,255,0.03); height: 50px;";
-      tr.innerHTML = `
-        <td style="padding: 8px; font-weight: 800; color: ${index === 0 ? '#eab308' : 'var(--text-main)'};">${rankBadge}</td>
-        <td style="padding: 8px; font-weight: 700;">${p.username}</td>
-        <td style="padding: 8px; font-weight: 700; color: #22c55e;">${p.win_rate || 0}%</td>
-        <td style="padding: 8px;">${p.total_trades || 0} ops</td>
-        <td style="padding: 8px;">${p.profit_factor || 0}</td>
-      `;
-      tbody.appendChild(tr);
-    });
   }
 
   loadLeaderboard();

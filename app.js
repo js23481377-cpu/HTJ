@@ -1,11 +1,15 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   lucide.createIcons();
 
   const STORAGE_KEY = 'life_trading_operations';
   const BALANCE_KEY = 'life_trading_initial_balance';
   const PLAN_STORAGE_KEY = 'life_trading_plan_rules';
   const STRATEGIES_KEY = 'life_trading_custom_strategies';
-  
+
+  // --- OBTENER USUARIO AUTENTICADO DESDE SUPABASE / LOCALSTORAGE ---
+  const localUserData = localStorage.getItem('life_trading_user');
+  const currentUser = localUserData ? JSON.parse(localUserData) : null;
+
   let trades = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
   let initialBalance = parseFloat(localStorage.getItem(BALANCE_KEY));
 
@@ -16,6 +20,75 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
 
   let customStrategies = JSON.parse(localStorage.getItem(STRATEGIES_KEY)) || [];
+
+  // --- FUNCIONES DE SINCRONIZACIÓN CON SUPABASE ---
+  async function fetchTradesFromCloud() {
+    if (!currentUser || !currentUser.id || typeof db === 'undefined') return;
+
+    try {
+      const { data, error } = await db
+        .from('trades')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error al cargar trades desde Supabase:', error.message);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        // Mapear los campos de la base de datos a la estructura del frontend
+        trades = data.map(t => ({
+          id: t.id,
+          date: t.created_at ? t.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
+          asset: t.asset,
+          direction: t.type || 'LONG',
+          strategy: t.notes && t.notes.includes('Estrategia:') ? t.notes.split('|')[0].replace('Estrategia:', '').trim() : '',
+          resultType: t.result ? t.result.toLowerCase() : 'tp',
+          pnl: parseFloat(t.pnl) || 0,
+          notes: t.notes || '',
+          photo: ''
+        }));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(trades));
+      }
+    } catch (err) {
+      console.error('Error de conexión con Supabase:', err);
+    }
+  }
+
+  async function syncTradeToCloud(tradeData) {
+    if (!currentUser || !currentUser.id || typeof db === 'undefined') return;
+
+    try {
+      const { data, error } = await db.from('trades').insert([
+        {
+          user_id: currentUser.id,
+          asset: tradeData.asset,
+          type: tradeData.direction,
+          entry_price: 0, // Campo por defecto para esquema SQL
+          pnl: tradeData.pnl,
+          result: tradeData.resultType.toUpperCase(),
+          notes: `Estrategia: ${tradeData.strategy || 'Sin estrategia'} | ${tradeData.notes || ''}`
+        }
+      ]);
+
+      if (error) console.error('Error al guardar en Supabase:', error.message);
+    } catch (err) {
+      console.error('Error al enviar trade a la nube:', err);
+    }
+  }
+
+  async function deleteTradeFromCloud(tradeId) {
+    if (!currentUser || !currentUser.id || typeof db === 'undefined') return;
+
+    try {
+      const { error } = await db.from('trades').delete().eq('id', tradeId);
+      if (error) console.error('Error al eliminar trade de Supabase:', error.message);
+    } catch (err) {
+      console.error('Error de eliminación en la nube:', err);
+    }
+  }
 
   function saveTrades() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(trades));
@@ -355,6 +428,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       row.querySelector('.edit-btn').addEventListener('click', () => showFormView(trade));
       row.querySelector('.delete-btn').addEventListener('click', () => {
+        deleteTradeFromCloud(trade.id);
         trades = trades.filter(t => t.id !== trade.id);
         saveTrades();
         renderDayTradesList(dateStr);
@@ -382,7 +456,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (backToListBtn) backToListBtn.addEventListener('click', () => showListView());
 
   if (tradeForm) {
-    tradeForm.addEventListener('submit', (e) => {
+    tradeForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       
       let pnlValue = parseFloat(document.getElementById('tradePnl').value) || 0;
@@ -395,30 +469,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const editId = editingTradeIdInput.value;
 
+      const tradeObject = {
+        id: editId || Date.now(),
+        date: tradeDateInput.value,
+        asset: tradeAssetInput.value,
+        direction: tradeDirectionInput.value,
+        strategy: strategyVal,
+        resultType: resultType,
+        pnl: pnlValue,
+        notes: document.getElementById('tradeNotes').value,
+        photo: base64Image
+      };
+
       if (editId) {
-        trades = trades.map(t => t.id == editId ? {
-          ...t,
-          date: tradeDateInput.value,
-          asset: tradeAssetInput.value,
-          direction: tradeDirectionInput.value,
-          strategy: strategyVal,
-          resultType: resultType,
-          pnl: pnlValue,
-          notes: document.getElementById('tradeNotes').value,
-          photo: base64Image
-        } : t);
+        trades = trades.map(t => t.id == editId ? tradeObject : t);
       } else {
-        trades.push({
-          id: Date.now(),
-          date: tradeDateInput.value,
-          asset: tradeAssetInput.value,
-          direction: tradeDirectionInput.value,
-          strategy: strategyVal,
-          resultType: resultType,
-          pnl: pnlValue,
-          notes: document.getElementById('tradeNotes').value,
-          photo: base64Image
-        });
+        trades.push(tradeObject);
+        // Sincronizar nuevo trade con Supabase
+        await syncTradeToCloud(tradeObject);
       }
 
       saveTrades();
@@ -624,5 +692,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Cargar operaciones guardadas en la nube al inicio
+  await fetchTradesFromCloud();
   updateDashboard();
 });
