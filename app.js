@@ -10,6 +10,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   const localUserData = localStorage.getItem('life_trading_user');
   const currentUser = localUserData ? JSON.parse(localUserData) : null;
 
+  // --- ACTUALIZAR DATOS Y APODO DE USUARIO EN LA INTERFAZ ---
+  if (currentUser && currentUser.username) {
+    const username = currentUser.username;
+    const firstLetter = username.charAt(0).toUpperCase();
+
+    const greetingEl = document.getElementById('userGreetingName');
+    const sidebarEl = document.getElementById('sidebarUserName');
+    const avatarEl = document.getElementById('sidebarAvatar');
+    const communityEl = document.getElementById('communityUserName');
+
+    if (greetingEl) greetingEl.textContent = username;
+    if (sidebarEl) sidebarEl.textContent = username;
+    if (avatarEl) avatarEl.textContent = firstLetter;
+    if (communityEl) communityEl.textContent = username;
+  }
+
   let trades = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
   let initialBalance = parseFloat(localStorage.getItem(BALANCE_KEY));
 

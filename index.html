@@ -62,9 +62,11 @@
                 </div>
 
                 <div class="user-profile">
-                    <div class="avatar">J</div>
+                    <!-- AVATAR DINÁMICO (Primera letra del apodo) -->
+                    <div class="avatar" id="sidebarAvatar">J</div>
                     <div class="user-info">
-                        <span class="user-name">JUANO</span>
+                        <!-- APODO DINÁMICO SIDEBAR -->
+                        <span class="user-name" id="sidebarUserName">JUANO</span>
                         <span class="user-role">Mi journal</span>
                     </div>
                     <button class="btn-logout" title="Cerrar sesión">
@@ -82,7 +84,8 @@
                 <div class="header-titles">
                     <span class="breadcrumb">JOURNAL / VISTA GENERAL</span>
                     <h1>Tu rendimiento, en perspectiva.</h1>
-                    <p class="greeting">Hola, JUANO. Tu próxima ventaja empieza en el registro.</p>
+                    <!-- SALUDO DINÁMICO ENCABEZADO -->
+                    <p class="greeting">Hola, <span id="userGreetingName">JUANO</span>. Tu próxima ventaja empieza en el registro.</p>
                 </div>
                 <button id="openModalBtn" class="btn-register">
                     <i data-lucide="plus"></i>
@@ -99,7 +102,6 @@
                 </div>
                 <span class="month-subtext">Una visión clara de tu rendimiento</span>
             </div>
-
 
             <!-- GRID SECCIÓN SUPERIOR -->
             <div class="top-grid">
@@ -201,7 +203,6 @@
                     </div>
                 </div>
 
-
                 <!-- PLAN Y COMUNIDAD -->
                 <div class="right-stack">
                     <div class="card plan-card">
@@ -219,7 +220,6 @@
                         </ol>
                     </div>
 
-
                     <div class="card community-card">
                         <div class="card-header-row">
                             <h3>La comunidad</h3>
@@ -232,7 +232,8 @@
                                 <div class="rank-user">
                                     <span class="rank-num">01</span>
                                     <div>
-                                        <div class="rank-name">JUANO</div>
+                                        <!-- APODO DINÁMICO TARJETA COMUNIDAD -->
+                                        <div class="rank-name" id="communityUserName">JUANO</div>
                                         <div class="rank-ops"><span id="communityOps">0</span> operaciones</div>
                                     </div>
                                 </div>
@@ -263,7 +264,6 @@
             <!-- Se genera dinámicamente con JS -->
         </div>
     </div>
-
 
     <!-- MODAL DE EDICIÓN DE PLAN DE TRADING -->
     <div id="planModal" class="modal-overlay">
