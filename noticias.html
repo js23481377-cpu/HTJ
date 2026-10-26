@@ -1,13 +1,20 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <script src="guard.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+  <script src="guard.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LIFE TRADING - Noticias & Calendario</title>
   <link rel="stylesheet" href="styles.css">
+  
+  <!-- Supabase CDN e Inicialización de la conexión -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://mhvvpuvkyjrjvmhowwme.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_LCK17AcmINHv8d_X14yuxg_LyeQj172';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  </script>
+
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
@@ -34,15 +41,15 @@
             <i data-lucide="layout-dashboard"></i>
             <span>Vista general</span>
           </a>
-          <a href="index.html" class="nav-item">
-            <i data-lucide="calendar"></i>
-            <span>Calendario</span>
+          <a href="backtesting.html" class="nav-item">
+            <i data-lucide="flask-conical"></i>
+            <span>Backtesting</span>
           </a>
           <a href="noticias.html" class="nav-item active">
             <i data-lucide="globe"></i>
             <span>Noticias / Macro</span>
           </a>
-          <a href="#" class="nav-item">
+          <a href="comunidad.html" class="nav-item">
             <i data-lucide="bar-chart-2"></i>
             <span>Comunidad</span>
           </a>
@@ -52,14 +59,16 @@
       <div class="sidebar-bottom">
         <div class="promo-box">
           <i data-lucide="sparkles" class="promo-icon"></i>
-          <h4>La consistencia es tu ventaja.</h4>
-          <p>Registra. Revisa. Evoluciona.</p>
+          <h4>Calendario Económico.</h4>
+          <p>Anticipa los eventos de alto impacto.</p>
         </div>
 
         <div class="user-profile">
-          <div class="avatar">J</div>
+          <!-- AVATAR DINÁMICO (Primera letra del apodo) -->
+          <div class="avatar" id="sidebarAvatar">J</div>
           <div class="user-info">
-            <span class="user-name">JUANO</span>
+            <!-- APODO DINÁMICO SIDEBAR -->
+            <span class="user-name" id="sidebarUserName">JUANO</span>
             <span class="user-role">Mi journal</span>
           </div>
           <button class="btn-logout" title="Cerrar sesión">
@@ -72,7 +81,7 @@
     <!-- CONTENIDO PRINCIPAL -->
     <main class="main-content">
       
-           <!-- HEADER ENCABEZADO -->
+      <!-- HEADER ENCABEZADO -->
       <header class="content-header">
         <div class="header-titles">
           <span class="breadcrumb">MACRO / CALENDARIO DE NOTICIAS</span>
@@ -90,7 +99,6 @@
           </button>
         </div>
       </header>
-
 
       <!-- FILTRO DE MES -->
       <div class="month-bar">

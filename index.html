@@ -3,12 +3,19 @@
 
 <head>
     <script src="guard.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LIFE TRADING - Pro Dashboard</title>
     <link rel="stylesheet" href="styles.css">
+    
+    <!-- Supabase CDN e Inicialización de la conexión -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+      const SUPABASE_URL = 'https://mhvvpuvkyjrjvmhowwme.supabase.co';
+      const SUPABASE_KEY = 'sb_publishable_LCK17AcmINHv8d_X14yuxg_LyeQj172';
+      const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    </script>
+
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Lucide Icons -->
@@ -245,24 +252,24 @@
 
             </div>
 
+            <!-- ANÁLISIS PROFUNDO POR ESTRATEGIA (MAQUETADO DENTRO DE MAIN-CONTENT) -->
+            <div class="card" style="margin-top: 24px;">
+                <div class="card-header-row">
+                    <div>
+                        <h3>Rendimiento por Estrategia</h3>
+                        <p class="card-subtext">Métricas comparativas individuales (Máximo 5 estrategias activas)</p>
+                    </div>
+                    <i data-lucide="layers" style="color: var(--accent-green);"></i>
+                </div>
+                
+                <!-- Grid de columnas para las 5 estrategias -->
+                <div id="strategyColumnsContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-top: 16px;">
+                    <!-- Se genera dinámicamente con JS -->
+                </div>
+            </div>
+
         </main>
 
-    </div>
-
-    <!-- ANÁLISIS PROFUNDO POR ESTRATEGIA (LAYOUT DE COLUMNAS) -->
-    <div class="card" style="margin-top: 24px; margin-left: 300px;">
-        <div class="card-header-row">
-            <div>
-                <h3>Rendimiento por Estrategia</h3>
-                <p class="card-subtext">Métricas comparativas individuales (Máximo 5 estrategias activas)</p>
-            </div>
-            <i data-lucide="layers" style="color: var(--accent-green);"></i>
-        </div>
-        
-        <!-- Grid de columnas para las 5 estrategias -->
-        <div id="strategyColumnsContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-top: 16px;">
-            <!-- Se genera dinámicamente con JS -->
-        </div>
     </div>
 
     <!-- MODAL DE EDICIÓN DE PLAN DE TRADING -->

@@ -7,10 +7,8 @@
   <title>LIFE TRADING - Comunidad</title>
   <link rel="stylesheet" href="styles.css">
   
-  <!-- Supabase CDN -->
+  <!-- Supabase CDN e Inicialización de la conexión -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  
-  <!-- Inicializar cliente de Supabase -->
   <script>
     const SUPABASE_URL = 'https://mhvvpuvkyjrjvmhowwme.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_LCK17AcmINHv8d_X14yuxg_LyeQj172';
@@ -24,7 +22,7 @@
 
   <div class="app-layout">
     
-    <!-- BARRA LATERAL -->
+    <!-- BARRA LATERAL (SIDEBAR) -->
     <aside class="sidebar">
       <div class="sidebar-top">
         <div class="brand">
@@ -57,12 +55,23 @@
       </div>
 
       <div class="sidebar-bottom">
+        <div class="promo-box">
+          <i data-lucide="sparkles" class="promo-icon"></i>
+          <h4>Comunidad de Traders.</h4>
+          <p>Compite y evoluciona en grupo.</p>
+        </div>
+
         <div class="user-profile">
+          <!-- AVATAR DINÁMICO (Primera letra del apodo) -->
           <div class="avatar" id="sidebarAvatar">J</div>
           <div class="user-info">
+            <!-- APODO DINÁMICO SIDEBAR -->
             <span class="user-name" id="sidebarUserName">JUANO</span>
             <span class="user-role">Mi journal</span>
           </div>
+          <button class="btn-logout" title="Cerrar sesión">
+            <i data-lucide="log-out"></i>
+          </button>
         </div>
       </div>
     </aside>
@@ -70,6 +79,7 @@
     <!-- CONTENIDO PRINCIPAL -->
     <main class="main-content">
       
+      <!-- HEADER ENCABEZADO -->
       <header class="content-header">
         <div class="header-titles">
           <span class="breadcrumb">COMUNIDAD / RANKING</span>
@@ -109,7 +119,7 @@
               </tr>
             </thead>
             <tbody id="leaderboardBody">
-              <!-- Carga dinámicamente -->
+              <!-- Carga dinámicamente desde comunidad.js -->
             </tbody>
           </table>
         </div>

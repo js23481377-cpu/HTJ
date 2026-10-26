@@ -2,16 +2,23 @@
 <html lang="es">
 <head>
     <script src="guard.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LIFE TRADING - Backtesting Studio</title>
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Supabase CDN e Inicialización de la conexión -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+      const SUPABASE_URL = 'https://mhvvpuvkyjrjvmhowwme.supabase.co';
+      const SUPABASE_KEY = 'sb_publishable_LCK17AcmINHv8d_X14yuxg_LyeQj172';
+      const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    </script>
 
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LIFE TRADING - Backtesting Studio</title>
-  <link rel="stylesheet" href="styles.css">
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 
@@ -44,7 +51,7 @@
             <i data-lucide="globe"></i>
             <span>Noticias / Macro</span>
           </a>
-          <a href="#" class="nav-item">
+          <a href="comunidad.html" class="nav-item">
             <i data-lucide="bar-chart-2"></i>
             <span>Comunidad</span>
           </a>
@@ -59,9 +66,11 @@
         </div>
 
         <div class="user-profile">
-          <div class="avatar">J</div>
+          <!-- AVATAR DINÁMICO (Primera letra del apodo) -->
+          <div class="avatar" id="sidebarAvatar">J</div>
           <div class="user-info">
-            <span class="user-name">JUANO</span>
+            <!-- APODO DINÁMICO SIDEBAR -->
+            <span class="user-name" id="sidebarUserName">JUANO</span>
             <span class="user-role">Backtest Studio</span>
           </div>
           <button class="btn-logout" title="Cerrar sesión">
