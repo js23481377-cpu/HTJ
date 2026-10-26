@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <!-- EmailJS SDK -->
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="session.js"></script>
+
+    <!-- EmailJS SDK -->
+
+
 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LIFE TRADING - Acceso Privado</title>
   <link rel="stylesheet" href="styles.css">
   <!-- Supabase CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
@@ -105,7 +108,7 @@
       <!-- PESTAÑAS (ÚNICAMENTE SOLICITAR CÓDIGO E INGRESAR CÓDIGO) -->
       <div class="auth-tabs">
         <button id="tabRequest" class="auth-tab active">Solicitar Acceso</button>
-        <button id="tabValidate" class="auth-tab">Ingresar Código</button>
+        <button id="tabValidate" class="auth-tab">Iniciar sesión</button>
       </div>
 
       <!-- FORMULARIO 1: SOLICITAR ACCESO -->
@@ -116,13 +119,13 @@
         </div>
         <div class="form-group">
           <label>Apodo de Trader (Username)</label>
-          <input type="text" id="reqUsername" placeholder="Ej. JUANO" required>
+          <input type="text" id="reqUsername" maxlength="80" placeholder="Ej. JUANO" required>
         </div>
         <div class="form-group">
           <label>Contraseña</label>
-          <input type="password" id="reqPassword" placeholder="••••••••" required>
+          <input type="password" id="reqPassword" minlength="12" autocomplete="new-password" placeholder="••••••••" required>
         </div>
-        <button type="submit" class="btn-save-modal" style="width: 100%; margin-top: 14px; justify-content: center; border-radius: 12px; background: #22c55e; color: #000; font-weight: 800;">Solicitar Código</button>
+        <button type="submit" class="btn-save-modal" style="width: 100%; margin-top: 14px; justify-content: center; border-radius: 12px; background: #22c55e; color: #000; font-weight: 800;">Crear cuenta</button>
       </form>
 
       <!-- FORMULARIO 2: VALIDAR CÓDIGO -->
@@ -132,10 +135,10 @@
           <input type="email" id="valEmail" placeholder="tu@correo.com" required>
         </div>
         <div class="form-group">
-          <label>Código de Acceso Recibido</label>
-          <input type="text" id="valCode" placeholder="Ej. LT-8492" style="text-transform: uppercase;" required>
+          <label>Contraseña</label>
+          <input type="password" id="valPassword" autocomplete="current-password" required>
         </div>
-        <button type="submit" class="btn-save-modal" style="width: 100%; margin-top: 14px; background: #22c55e; color: #000; font-weight: 800; justify-content: center; border-radius: 12px;">Activar e Ingresar</button>
+        <button type="submit" class="btn-save-modal" style="width: 100%; margin-top: 14px; background: #22c55e; color: #000; font-weight: 800; justify-content: center; border-radius: 12px;">Entrar</button>
       </form>
 
       <div id="authStatusMsg" style="margin-top: 18px; font-size: 12px; text-align: center; font-weight: 600;"></div>

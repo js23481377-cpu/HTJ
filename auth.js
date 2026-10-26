@@ -1,118 +1,79 @@
-// Credenciales Supabase
-const SUPABASE_URL = 'https://mhvvpuvkyjrjvmhowwme.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_LCK17AcmINHv8d_X14yuxg_LyeQj172';
-const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-// Inicializar EmailJS con tu Public Key
-emailjs.init("4YWvGd62dXMQwTMuj");
-
 document.addEventListener('DOMContentLoaded', () => {
-  lucide.createIcons();
-
-  const tabRequest = document.getElementById('tabRequest');
-  const tabValidate = document.getElementById('tabValidate');
-  const formRequest = document.getElementById('formRequest');
-  const formValidate = document.getElementById('formValidate');
-  const authStatusMsg = document.getElementById('authStatusMsg');
-
-  tabRequest.addEventListener('click', () => {
-    tabRequest.classList.add('active');
-    tabValidate.classList.remove('active');
-    formRequest.style.display = 'flex';
-    formValidate.style.display = 'none';
-    authStatusMsg.textContent = '';
-  });
-
-  tabValidate.addEventListener('click', () => {
-    tabValidate.classList.add('active');
-    tabRequest.classList.remove('active');
-    formValidate.style.display = 'flex';
-    formRequest.style.display = 'none';
-    authStatusMsg.textContent = '';
-  });
-
-  // 1. SOLICITAR CÓDIGO Y ENVIAR NOTIFICACIÓN POR CORREO AL DUEÑO
-  formRequest.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    authStatusMsg.style.color = '#a1a1aa';
-    authStatusMsg.textContent = 'Procesando solicitud y notificando al administrador...';
-
-    const email = document.getElementById('reqEmail').value.trim();
-    const username = document.getElementById('reqUsername').value.trim();
-    const password = document.getElementById('reqPassword').value;
-
-    const generatedCode = 'LT-' + Math.floor(1000 + Math.random() * 9000);
-
-    // Guardar en Supabase
-    const { error } = await db.from('profiles').insert([
-      {
-        email: email,
-        username: username,
-        password_hash: password,
-        access_code: generatedCode,
-        is_approved: false
-      }
-    ]);
-
-    if (error) {
-      authStatusMsg.style.color = '#ef4444';
-      authStatusMsg.textContent = error.message.includes('unique') 
-        ? 'Este correo ya tiene una solicitud registrada.' 
-        : 'Error: ' + error.message;
-      return;
-    }
-
-    // Enviar correo de notificación a tu email personal vía EmailJS
+  if (window.lucide) lucide.createIcons();
+  const request = document.getElementById('formRequest');
+  const login = document.getElementById('formValidate');
+  const status = document.getElementById('authStatusMsg');
+  const tell = text => { status.textContent = text; };
+  function tab(register) {
+    request.style.display = register ? 'flex' : 'none';
+    login.style.display = register ? 'none' : 'flex';
+    document.getElementById('tabRequest').classList.toggle('active', register);
+    document.getElementById('tabValidate').classList.toggle('active', !register);
+    tell('');
+  }
+  document.getElementById('tabRequest').onclick = () => tab(true);
+  document.getElementById('tabValidate').onclick = () => tab(false);
+  tab(false);
+  request.addEventListener('submit', async event => {
+    event.preventDefault();
+    const button = request.querySelector('button[type=submit]');
+    button.disabled = true;
     try {
-      await emailjs.send("service_dtim3ij", "template_6d7x41c", {
-        user_email: email,
-        user_username: username,
-        access_code: generatedCode
+      const {error} = await db.auth.signUp({
+        email: document.getElementById('reqEmail').value.trim(),
+        password: document.getElementById('reqPassword').value,
+        options: {
+          emailRedirectTo: 'https://hermatraders.vercel.app/login.html',
+          data: {username: document.getElementById('reqUsername').value.trim()}
+        }
       });
-
-      authStatusMsg.style.color = '#22c55e';
-      authStatusMsg.textContent = '¡Solicitud enviada con éxito! El administrador ha recibido tu solicitud. Cuando te entregue el código, ingrésalo en la pestaña "Ingresar Código".';
-    } catch (emailErr) {
-      console.error('Error al enviar email:', emailErr);
-      authStatusMsg.style.color = '#eab308';
-      authStatusMsg.textContent = 'Solicitud registrada en base de datos. (Hubo un problema enviando el correo de aviso).';
-    }
+      if (error) throw error;
+      request.reset();
+      tell('Si el registro procede, recibirás un correo de confirmación. Después el administrador deberá vincular o crear tu perfil y aprobar tu acceso.');
+    } catch { tell('No se pudo completar el registro. Revisa los datos o inténtalo más tarde.'); }
+    finally { button.disabled = false; }
   });
-
-  // 2. VALIDAR CÓDIGO Y ACTIVAR PERFIL
-  formValidate.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    authStatusMsg.style.color = '#a1a1aa';
-    authStatusMsg.textContent = 'Validando código...';
-
-    const email = document.getElementById('valEmail').value.trim();
-    const code = document.getElementById('valCode').value.trim().toUpperCase();
-
-    const { data: user, error } = await db
-      .from('profiles')
-      .select('*')
-      .eq('email', email)
-      .eq('access_code', code)
-      .single();
-
-    if (error || !user) {
-      authStatusMsg.style.color = '#ef4444';
-      authStatusMsg.textContent = 'Correo o código de acceso inválidos.';
-      return;
-    }
-
-    await db.from('profiles').update({ is_approved: true }).eq('id', user.id);
-
-    localStorage.setItem('life_trading_user', JSON.stringify({
-      id: user.id,
-      username: user.username,
-      email: user.email
-    }));
-
-    authStatusMsg.style.color = '#22c55e';
-    authStatusMsg.textContent = '¡Acceso verificado con éxito! Redirigiendo...';
-    setTimeout(() => {
-      window.location.href = 'index.html';
-    }, 1000);
+  login.addEventListener('submit', async event => {
+    event.preventDefault();
+    const button = login.querySelector('button[type=submit]');
+    button.disabled = true;
+    try {
+      const {error} = await db.auth.signInWithPassword({
+        email: document.getElementById('valEmail').value.trim(),
+        password: document.getElementById('valPassword').value
+      });
+      if (error) { tell('No se pudo iniciar sesión. Comprueba correo, contraseña y confirmación del correo.'); return; }
+      const profile = await readProfile();
+      document.getElementById('valPassword').value = '';
+      if (!profile || profile.is_approved !== true) {
+        tell('Tu cuenta está pendiente de vinculación o aprobación del administrador.');
+        await db.auth.signOut({scope: 'local'});
+        return;
+      }
+      window.location.replace('index.html');
+    } catch { tell('No se pudo comprobar el acceso. Inténtalo de nuevo.'); }
+    finally { button.disabled = false; }
   });
+});
+
+// Respaldo explícito de datos locales antiguos, sin eliminarlos ni reasignarlos.
+document.addEventListener('DOMContentLoaded', () => {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'auth-tab';
+  button.style.marginTop = '18px';
+  button.textContent = 'Descargar copia de mis datos locales';
+  button.addEventListener('click', () => {
+    const entries = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key.startsWith('life_trading_')) entries[key] = localStorage.getItem(key);
+    }
+    const blob = new Blob([JSON.stringify(entries, null, 2)], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url; link.download = 'HTJ-datos-locales.json'; link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+  document.querySelector('.auth-card').appendChild(button);
 });

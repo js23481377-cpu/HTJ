@@ -1,9 +1,11 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  const verifiedProfile = await window.authReady;
+  if (!verifiedProfile) return;
   lucide.createIcons();
 
-  const STORAGE_KEY = 'life_trading_backtesting_operations';
-  const BALANCE_KEY = 'life_trading_backtesting_balance';
-  const STRATEGIES_KEY = 'life_trading_backtesting_custom_strategies';
+  const STORAGE_KEY = userStorageKey('life_trading_backtesting_operations');
+  const BALANCE_KEY = userStorageKey('life_trading_backtesting_balance');
+  const STRATEGIES_KEY = userStorageKey('life_trading_backtesting_custom_strategies');
   
   let trades = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
   let initialBalance = parseFloat(localStorage.getItem(BALANCE_KEY));
@@ -267,13 +269,13 @@ document.addEventListener('DOMContentLoaded', () => {
       
       const sign = trade.pnl >= 0 ? '+' : '';
       const pnlColor = trade.pnl > 0 ? 'text-green' : (trade.pnl < 0 ? 'text-red' : '');
-      let photoThumbnail = trade.photo ? `<img src="${trade.photo}" class="thumbnail-preview" data-photo="${trade.photo}" title="Ver foto">` : '';
+      let photoThumbnail = trade.photo ? `<img src="${escapeHTML(safePhoto(trade.photo))}" class="thumbnail-preview" data-photo="${escapeHTML(safePhoto(trade.photo))}" title="Ver foto">` : '';
 
       row.innerHTML = `
         <div style="display:flex; flex-direction:column; gap:2px;">
-          <span style="font-size:13px; font-weight:700;">${trade.asset} (${trade.direction || 'LONG'}) - <span class="${pnlColor}">${sign}$${trade.pnl.toFixed(2)}</span></span>
-          <span style="font-size:10px; color:#38bdf8; font-weight:600;">Estrategia: ${trade.strategy || 'Sin estrategia'}</span>
-          <span style="font-size:10px; color:var(--text-muted);">Tipo: ${trade.resultType.toUpperCase()} | ${trade.notes || 'Sin notas'}</span>
+          <span style="font-size:13px; font-weight:700;">${escapeHTML(trade.asset)} (${escapeHTML(trade.direction || 'LONG')}) - <span class="${pnlColor}">${sign}$${trade.pnl.toFixed(2)}</span></span>
+          <span style="font-size:10px; color:#38bdf8; font-weight:600;">Estrategia: ${escapeHTML(trade.strategy || 'Sin estrategia')}</span>
+          <span style="font-size:10px; color:var(--text-muted);">Tipo: ${escapeHTML(trade.resultType.toUpperCase())} | ${escapeHTML(trade.notes || 'Sin notas')}</span>
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
           ${photoThumbnail}
@@ -434,7 +436,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
       col.innerHTML = `
         <div>
-          <span style="font-size: 13px; font-weight: 700; color: var(--text-main); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${stratName}</span>
+          <span style="font-size: 13px; font-weight: 700; color: var(--text-main); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHTML(stratName)}</span>
           <span style="font-size: 11px; color: var(--text-muted);">${stratTrades.length} tests | ${winRate}% Win</span>
         </div>
         <div>

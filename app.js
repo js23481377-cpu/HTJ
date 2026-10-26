@@ -1,14 +1,15 @@
 document.addEventListener('DOMContentLoaded', async () => {
+  const verifiedProfile = await window.authReady;
+  if (!verifiedProfile) return;
   lucide.createIcons();
 
-  const STORAGE_KEY = 'life_trading_operations';
-  const BALANCE_KEY = 'life_trading_initial_balance';
-  const PLAN_STORAGE_KEY = 'life_trading_plan_rules';
-  const STRATEGIES_KEY = 'life_trading_custom_strategies';
+  const STORAGE_KEY = userStorageKey('life_trading_operations');
+  const BALANCE_KEY = userStorageKey('life_trading_initial_balance');
+  const PLAN_STORAGE_KEY = userStorageKey('life_trading_plan_rules');
+  const STRATEGIES_KEY = userStorageKey('life_trading_custom_strategies');
 
   // --- OBTENER USUARIO AUTENTICADO DESDE SUPABASE / LOCALSTORAGE ---
-  const localUserData = localStorage.getItem('life_trading_user');
-  const currentUser = localUserData ? JSON.parse(localUserData) : null;
+  const currentUser = verifiedProfile;
 
   // --- ACTUALIZAR DATOS Y APODO DE USUARIO EN LA INTERFAZ ---
   if (currentUser && currentUser.username) {
@@ -53,8 +54,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
       }
 
-      if (data && data.length > 0) {
+      if (data) {
         // Mapear los campos de la base de datos a la estructura del frontend
+        const cachedTrades = trades;
+        if (cachedTrades.length) localStorage.setItem(STORAGE_KEY + ':before-cloud', JSON.stringify(cachedTrades));
         trades = data.map(t => ({
           id: t.id,
           date: t.created_at ? t.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
@@ -64,7 +67,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           resultType: t.result ? t.result.toLowerCase() : 'tp',
           pnl: parseFloat(t.pnl) || 0,
           notes: t.notes || '',
-          photo: ''
+          photo: cachedTrades.find(old => old.id === t.id)?.photo || ''
         }));
         localStorage.setItem(STORAGE_KEY, JSON.stringify(trades));
       }
@@ -73,37 +76,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  async function syncTradeToCloud(tradeData) {
-    if (!currentUser || !currentUser.id || typeof db === 'undefined') return;
-
-    try {
-      const { data, error } = await db.from('trades').insert([
-        {
-          user_id: currentUser.id,
-          asset: tradeData.asset,
-          type: tradeData.direction,
-          entry_price: 0, // Campo por defecto para esquema SQL
-          pnl: tradeData.pnl,
-          result: tradeData.resultType.toUpperCase(),
-          notes: `Estrategia: ${tradeData.strategy || 'Sin estrategia'} | ${tradeData.notes || ''}`
-        }
-      ]);
-
-      if (error) console.error('Error al guardar en Supabase:', error.message);
-    } catch (err) {
-      console.error('Error al enviar trade a la nube:', err);
-    }
+  async function syncTradeToCloud(tradeData, editing = false) {
+    const payload = {
+      user_id: currentUser.id,
+      asset: tradeData.asset,
+      type: tradeData.direction,
+      pnl: tradeData.pnl,
+      result: tradeData.resultType.toUpperCase(),
+      notes: `Estrategia: ${tradeData.strategy || 'Sin estrategia'} | ${tradeData.notes || ''}`
+    };
+    const query = editing
+      ? db.from('trades').update(payload).eq('id', tradeData.id).eq('user_id', currentUser.id)
+      : db.from('trades').insert({...payload, entry_price: 0, created_at: tradeData.date + 'T12:00:00Z'});
+    const {data, error} = await query.select('id').single();
+    if (error || !data) throw error || new Error('No se guardó la operación');
+    tradeData.id = data.id;
   }
 
   async function deleteTradeFromCloud(tradeId) {
-    if (!currentUser || !currentUser.id || typeof db === 'undefined') return;
-
-    try {
-      const { error } = await db.from('trades').delete().eq('id', tradeId);
-      if (error) console.error('Error al eliminar trade de Supabase:', error.message);
-    } catch (err) {
-      console.error('Error de eliminación en la nube:', err);
-    }
+    const {data, error} = await db.from('trades').delete()
+      .eq('id', tradeId).eq('user_id', currentUser.id).select('id').single();
+    if (error || !data) throw error || new Error('No se eliminó la operación');
   }
 
   function saveTrades() {
@@ -427,13 +420,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       
       const sign = trade.pnl >= 0 ? '+' : '';
       const pnlColor = trade.pnl > 0 ? 'text-green' : (trade.pnl < 0 ? 'text-red' : '');
-      let photoThumbnail = trade.photo ? `<img src="${trade.photo}" class="thumbnail-preview" data-photo="${trade.photo}" title="Ver foto">` : '';
+      let photoThumbnail = trade.photo ? `<img src="${escapeHTML(safePhoto(trade.photo))}" class="thumbnail-preview" data-photo="${escapeHTML(safePhoto(trade.photo))}" title="Ver foto">` : '';
 
       row.innerHTML = `
         <div style="display:flex; flex-direction:column; gap:2px;">
-          <span style="font-size:13px; font-weight:700;">${trade.asset} (${trade.direction || 'LONG'}) - <span class="${pnlColor}">${sign}$${trade.pnl.toFixed(2)}</span></span>
-          <span style="font-size:10px; color:var(--accent-green); font-weight:600;">Estrategia: ${trade.strategy || 'Sin estrategia'}</span>
-          <span style="font-size:10px; color:var(--text-muted);">Tipo: ${trade.resultType.toUpperCase()} | ${trade.notes || 'Sin notas'}</span>
+          <span style="font-size:13px; font-weight:700;">${escapeHTML(trade.asset)} (${escapeHTML(trade.direction || 'LONG')}) - <span class="${pnlColor}">${sign}$${trade.pnl.toFixed(2)}</span></span>
+          <span style="font-size:10px; color:var(--accent-green); font-weight:600;">Estrategia: ${escapeHTML(trade.strategy || 'Sin estrategia')}</span>
+          <span style="font-size:10px; color:var(--text-muted);">Tipo: ${escapeHTML(trade.resultType.toUpperCase())} | ${escapeHTML(trade.notes || 'Sin notas')}</span>
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
           ${photoThumbnail}
@@ -443,8 +436,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       `;
 
       row.querySelector('.edit-btn').addEventListener('click', () => showFormView(trade));
-      row.querySelector('.delete-btn').addEventListener('click', () => {
-        deleteTradeFromCloud(trade.id);
+      row.querySelector('.delete-btn').addEventListener('click', async () => {
+        try { await deleteTradeFromCloud(trade.id); }
+        catch { alert('No se pudo eliminar. Comprueba tu conexión y acceso.'); return; }
         trades = trades.filter(t => t.id !== trade.id);
         saveTrades();
         renderDayTradesList(dateStr);
@@ -497,13 +491,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         photo: base64Image
       };
 
-      if (editId) {
-        trades = trades.map(t => t.id == editId ? tradeObject : t);
-      } else {
-        trades.push(tradeObject);
-        // Sincronizar nuevo trade con Supabase
-        await syncTradeToCloud(tradeObject);
-      }
+      const submitButton = tradeForm.querySelector('button[type="submit"]');
+      if (submitButton) submitButton.disabled = true;
+      try {
+        await syncTradeToCloud(tradeObject, Boolean(editId));
+      } catch {
+        alert('No se pudo guardar. Tus datos del formulario siguen aquí; comprueba tu conexión y acceso.');
+        return;
+      } finally { if (submitButton) submitButton.disabled = false; }
+      if (editId) trades = trades.map(t => t.id === editId ? tradeObject : t);
+      else trades.push(tradeObject);
 
       saveTrades();
       updateDashboard();
@@ -583,7 +580,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       
       col.innerHTML = `
         <div>
-          <span style="font-size: 13px; font-weight: 700; color: var(--text-main); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${stratName}</span>
+          <span style="font-size: 13px; font-weight: 700; color: var(--text-main); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHTML(stratName)}</span>
           <span style="font-size: 11px; color: var(--text-muted);">${stratTrades.length} trades | ${winRate}% Win</span>
         </div>
         <div>

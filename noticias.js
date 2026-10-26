@@ -1,7 +1,9 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  const verifiedProfile = await window.authReady;
+  if (!verifiedProfile) return;
   lucide.createIcons();
 
-  const NEWS_STORAGE_KEY = 'life_trading_macro_news';
+  const NEWS_STORAGE_KEY = userStorageKey('life_trading_macro_news');
   
   // Base de datos anual completa para el 2026 (USD / NAS100 / XAUUSD)
   let defaultNews = [
@@ -189,9 +191,9 @@ document.addEventListener('DOMContentLoaded', () => {
       let newsHtml = '';
       dayNews.forEach(n => {
         newsHtml += `
-          <div class="news-card-badge" title="${n.title}">
-            <span class="news-card-time">${n.time}</span>
-            <span class="news-card-title">${n.title}</span>
+          <div class="news-card-badge" title="${escapeHTML(n.title)}">
+            <span class="news-card-time">${escapeHTML(n.time)}</span>
+            <span class="news-card-title">${escapeHTML(n.title)}</span>
           </div>
         `;
       });
