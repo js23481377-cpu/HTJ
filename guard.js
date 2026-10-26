@@ -2,26 +2,48 @@
 // GUARDIÁN ESTRICTO (NIVEL COMERCIAL) - LIFE TRADING
 // =========================================================
 
-// 1. CANDADO VISUAL: Ocultar toda la página inmediatamente (Evita pantallazos de caché)
+// 1. CANDADO VISUAL: Ocultar toda la página inmediatamente
 document.documentElement.style.visibility = 'hidden';
 
-// 2. BLOQUEO ANTI-CURIOSOS (Desactiva Click Derecho y Teclas de Desarrollo)
-document.addEventListener('contextmenu', event => event.preventDefault());
-document.addEventListener('keydown', (event) => {
-  if (event.key === 'F12') event.preventDefault();
-  if (event.ctrlKey && event.shiftKey && (event.key === 'I' || event.key === 'i' || event.key === 'J' || event.key === 'j' || event.key === 'C' || event.key === 'c')) {
-    event.preventDefault();
+// 2. BLOQUEO TOTAL ANTI-INSPECCIÓN (Mac & Windows/Linux)
+document.addEventListener('contextmenu', e => e.preventDefault()); // Bloquea click derecho
+
+document.addEventListener('keydown', (e) => {
+  const isCmdOrCtrl = e.ctrlKey || e.metaKey;
+  const key = e.key.toLowerCase();
+
+  // Bloquear F12
+  if (e.key === 'F12') {
+    e.preventDefault();
   }
-  if (event.ctrlKey && (event.key === 'U' || event.key === 'u')) event.preventDefault();
+
+  // Bloquear Ctrl+U / Cmd+U (Ver código), Ctrl+S / Cmd+S (Guardar), Ctrl+P / Cmd+P (Imprimir)
+  if (isCmdOrCtrl && (key === 'u' || key === 's' || key === 'p' || key === 'f')) {
+    e.preventDefault();
+  }
+
+  // Bloquear Ctrl+Shift+I, C, J (Windows/Linux) y Cmd+Shift+C (Mac)
+  if (isCmdOrCtrl && e.shiftKey && (key === 'i' || key === 'c' || key === 'j')) {
+    e.preventDefault();
+  }
+
+  // Bloquear Cmd+Option+I, Cmd+Option+J, Cmd+Option+C (Exclusivo Mac)
+  if (e.metaKey && e.altKey && (key === 'i' || key === 'c' || key === 'j')) {
+    e.preventDefault();
+  }
 });
 
-(function initGuard() {
-  const LOGIN_PAGE = 'login.html'; // Asegúrate de que tu página de login se llame así
+// TRAMPA DE DEPURADOR: Si logran abrir la consola desde el menú del navegador,
+// este bucle infinito congelará la pestaña impidiendo que inspeccionen los elementos.
+setInterval(() => {
+  debugger;
+}, 100);
 
-  // Función de expulsión militar
+(function initGuard() {
+  const LOGIN_PAGE = 'login.html';
+
   function enforceKick() {
     localStorage.removeItem('life_trading_user');
-    // location.replace elimina el historial actual, rompiendo el botón "Atrás"
     window.location.replace(LOGIN_PAGE);
   }
 
@@ -37,7 +59,6 @@ document.addEventListener('keydown', (event) => {
 
   // 4. CAZADOR DEL BOTÓN "ATRÁS" (BFCache)
   window.addEventListener('pageshow', (event) => {
-    // Si la página se cargó desde la memoria caché del navegador o no hay sesión
     if (event.persisted || !localStorage.getItem('life_trading_user')) {
       if (!localStorage.getItem('life_trading_user')) {
         enforceKick();
@@ -45,14 +66,13 @@ document.addEventListener('keydown', (event) => {
     }
   });
 
-  // 5. VERIFICACIÓN EN LA NUBE (Al cargar el DOM)
+  // 5. VERIFICACIÓN EN LA NUBE
   document.addEventListener('DOMContentLoaded', async () => {
     let userData = null;
 
     try {
       userData = JSON.parse(currentUser);
       
-      // Personalizar Sidebar
       const userNameEl = document.querySelector('.user-profile .user-name');
       const avatarEl = document.querySelector('.user-profile .avatar');
       if (userNameEl && userData.username) userNameEl.textContent = userData.username.toUpperCase();
@@ -62,7 +82,6 @@ document.addEventListener('keydown', (event) => {
       return;
     }
 
-    // VALIDACIÓN ESTRICTA CON SUPABASE
     if (typeof supabase !== 'undefined' && userData) {
       try {
         const SUPABASE_URL = 'https://mhvvpuvkyjrjvmhowwme.supabase.co';
@@ -76,9 +95,7 @@ document.addEventListener('keydown', (event) => {
 
         const { data: profile, error } = await query;
 
-        // SI NO ESTÁ EN LA BASE DE DATOS O NO ESTÁ APROBADO -> AFUERA
         if (error || !profile || profile.is_approved === false) {
-          console.warn('Bloqueo de seguridad: Usuario inválido en la nube.');
           enforceKick();
           return;
         }
