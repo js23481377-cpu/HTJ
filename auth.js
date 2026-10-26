@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       if (error) throw error;
       request.reset();
-      tell('Si el registro procede, recibirás un correo de confirmación. Después el administrador deberá vincular o crear tu perfil y aprobar tu acceso.');
+      tell('Si el registro procede, recibirás un correo de confirmación. Después tu solicitud quedará pendiente de aprobación. No necesitas un código de acceso.');
     } catch { tell('No se pudo completar el registro. Revisa los datos o inténtalo más tarde.'); }
     finally { button.disabled = false; }
   });
@@ -46,11 +46,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const profile = await readProfile();
       document.getElementById('valPassword').value = '';
       if (!profile || profile.is_approved !== true) {
-        tell('Tu cuenta está pendiente de vinculación o aprobación del administrador.');
+        const {data: access} = await db.rpc('htj_access_status');
+        tell(access?.status === 'rejected' ? 'Tu solicitud no fue aprobada. Contacta al administrador.' : access?.status === 'revoked' ? 'Tu acceso fue retirado. Contacta al administrador.' : 'Tu solicitud está pendiente. Podrás entrar cuando el administrador la apruebe.');
         await db.auth.signOut({scope: 'local'});
         return;
       }
-      window.location.replace('index.html');
+      window.location.replace(new URLSearchParams(location.search).get('next') === 'admin' ? 'admin.html' : 'index.html');
     } catch { tell('No se pudo comprobar el acceso. Inténtalo de nuevo.'); }
     finally { button.disabled = false; }
   });

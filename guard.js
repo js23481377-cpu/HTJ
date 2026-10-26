@@ -2,7 +2,7 @@ document.documentElement.style.visibility = 'hidden';
 function denyAccess() {
   document.documentElement.style.visibility = 'hidden';
   window.currentProfile = null;
-  window.location.replace('login.html');
+  window.location.replace(window.location.pathname.endsWith('/admin.html') ? 'login.html?next=admin' : 'login.html');
 }
 window.authReady = (async () => {
   try {
@@ -41,3 +41,22 @@ async function recheck() {
 window.addEventListener('pageshow', event => { if (event.persisted) recheck(); });
 window.addEventListener('focus', recheck);
 setInterval(recheck, 60000);
+
+// La navegación es solo visual. Cada RPC vuelve a comprobar el rol en la base.
+window.adminReady = (async () => {
+  if (!await window.authReady) return false;
+  try {
+    const {data, error} = await db.rpc('htj_access_status');
+    return !error && data?.is_admin === true;
+  } catch { return false; }
+})();
+document.addEventListener('DOMContentLoaded', async () => {
+  if (!await window.adminReady) return;
+  const nav = document.querySelector('.sidebar-nav');
+  if (!nav) return;
+  const link = document.createElement('a');
+  link.href = 'admin.html';
+  link.className = 'nav-item' + (location.pathname.endsWith('/admin.html') ? ' active' : '');
+  link.textContent = 'Solicitudes';
+  nav.appendChild(link);
+});

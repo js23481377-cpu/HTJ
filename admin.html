@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="session.js"></script>
+<script src="guard.js"></script>
+
+  
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HERMA Traders - Solicitudes</title>
+  <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="admin.css">
+  
+  <!-- Supabase CDN e Inicialización de la conexión -->
+  
+  
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <div class="app-layout">
+    
+    <!-- BARRA LATERAL (SIDEBAR) -->
+    <aside class="sidebar">
+      <div class="sidebar-top">
+        <div class="brand">
+          <div class="brand-icon"><i data-lucide="trending-up"></i></div>
+          <div class="brand-text">
+            <span class="brand-name">LIFE TRADING</span>
+            <span class="brand-tag">THE JOURNAL</span>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <span class="nav-section-title">TU ESPACIO</span>
+          <a href="index.html" class="nav-item">
+            <i data-lucide="layout-dashboard"></i>
+            <span>Vista general</span>
+          </a>
+          <a href="backtesting.html" class="nav-item">
+            <i data-lucide="flask-conical"></i>
+            <span>Backtesting</span>
+          </a>
+          <a href="noticias.html" class="nav-item">
+            <i data-lucide="globe"></i>
+            <span>Noticias / Macro</span>
+          </a>
+          <a href="comunidad.html" class="nav-item">
+            <i data-lucide="bar-chart-2"></i>
+            <span>Comunidad</span>
+          </a>
+        </nav>
+      </div>
+
+      <div class="sidebar-bottom">
+        <div class="promo-box">
+          <i data-lucide="sparkles" class="promo-icon"></i>
+          <h4>Comunidad de Traders.</h4>
+          <p>Compite y evoluciona en grupo.</p>
+        </div>
+
+        <div class="user-profile">
+          <!-- AVATAR DINÁMICO (Primera letra del apodo) -->
+          <div class="avatar" id="sidebarAvatar">J</div>
+          <div class="user-info">
+            <!-- APODO DINÁMICO SIDEBAR -->
+            <span class="user-name" id="sidebarUserName">JUANO</span>
+            <span class="user-role">Mi journal</span>
+          </div>
+          <button class="btn-logout" title="Cerrar sesión">
+            <i data-lucide="log-out"></i>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CONTENIDO PRINCIPAL -->
+<main class="main-content admin-main">
+  <header class="content-header"><div class="header-titles">
+    <span class="breadcrumb">ADMINISTRACIÓN / ACCESOS</span>
+    <h1>Solicitudes de acceso</h1>
+    <p class="greeting">Tú decides quién entra. Los datos de cada trader permanecen privados.</p>
+  </div><button id="refreshRequests" class="btn-register" type="button">Actualizar</button></header>
+  <p id="adminStatus" class="admin-message" role="status" aria-live="polite">Verificando permisos…</p>
+  <section id="adminContent" hidden>
+    <div class="admin-summary" aria-label="Resumen de solicitudes">
+      <div class="card"><span>Pendientes</span><strong id="pendingCount">0</strong></div>
+      <div class="card"><span>Con acceso</span><strong id="approvedCount">0</strong></div>
+      <div class="card"><span>Sin acceso</span><strong id="deniedCount">0</strong></div>
+    </div>
+    <section class="card admin-requests">
+      <div class="admin-tools">
+        <label>Buscar persona<input id="requestSearch" type="search" placeholder="Correo o nombre" autocomplete="off"></label>
+        <label>Mostrar<select id="requestFilter"><option value="pending">Pendientes</option><option value="all">Todas las cuentas</option><option value="approved">Con acceso</option><option value="denied">Rechazadas o revocadas</option></select></label>
+      </div>
+      <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Persona</th><th>Estado</th><th>Solicitud</th><th>Acciones</th></tr></thead><tbody id="requestsBody"></tbody></table></div>
+      <p id="requestEmpty" class="admin-empty" hidden>No hay solicitudes pendientes. Las nuevas aparecerán cuando confirmen su correo.</p>
+    </section>
+    <details class="card admin-mail">
+      <summary>Notificaciones por correo <span id="mailBadge" class="status-badge">Comprobando…</span></summary>
+      <p>Recibirás avisos en <strong>juanooo2348137@gmail.com</strong>. Los enlaces abren este panel; no aprueban usuarios por sí solos.</p>
+      <p id="mailHelp">Conecta Resend una sola vez. Para las pruebas, crea la cuenta de Resend con ese mismo correo y usa el remitente de prueba. Para producción, usa un dominio verificado.</p>
+      <p><a href="https://resend.com/api-keys" target="_blank" rel="noopener noreferrer">Abrir Resend → API Keys</a></p>
+      <form id="mailForm" class="admin-mail-form">
+        <label>Clave de envío de Resend<input id="resendKey" type="password" autocomplete="off" placeholder="re_…" required></label>
+        <label>Remitente<input id="mailSender" type="text" maxlength="200" value="HERMA Traders &lt;onboarding@resend.dev&gt;" required></label>
+        <button class="btn-register" type="submit">Guardar conexión</button>
+      </form>
+      <p class="admin-hint">La clave se envía por HTTPS y se guarda cifrada en Supabase Vault. No la pegues en GitHub ni en el chat.</p>
+      <div class="admin-actions"><button type="button" id="testMail">Enviar prueba</button><button type="button" id="refreshMail">Consultar envíos</button><button type="button" id="pauseMail">Pausar avisos</button></div>
+      <p id="mailStatus" role="status" aria-live="polite"></p><ul id="mailHistory" class="mail-history"></ul>
+    </details>
+  </section>
+</main>
+
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>
